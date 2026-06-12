@@ -5,67 +5,78 @@
 <title>寵物養成遊戲</title>
 
 <style>
-body {
-  background: #f5eedf;
-  font-family: "Microsoft JhengHei";
-  text-align: center;
-  margin: 0;
+body{
+  background:#f5eedf;
+  font-family:"Microsoft JhengHei", sans-serif;
+  text-align:center;
+  margin:0;
 }
 
-#game {
-  position: relative;
-  width: 100%;
-  height: 500px;
-  overflow: hidden;
+.panel{
+  background:white;
+  width:520px;
+  max-width:90%;
+  margin:15px auto;
+  padding:15px;
+  border-radius:15px;
 }
 
-#pet {
-  position: absolute;
-  width: 220px;
-  left: 300px;
-  top: 180px;
-  cursor: grab;
-  user-select: none;
+#game{
+  position:relative;
+  width:100%;
+  height:500px;
+  overflow:hidden;
 }
 
-.panel {
-  background: white;
-  width: 500px;
-  margin: 15px auto;
-  padding: 15px;
-  border-radius: 15px;
+#pet{
+  position:absolute;
+  width:220px;
+  left:300px;
+  top:180px;
+  cursor:grab;
+  user-select:none;
 }
 
-#message {
-  font-size: 22px;
-  min-height: 35px;
+#message{
+  font-size:22px;
+  min-height:35px;
 }
 
-button {
-  padding: 10px 15px;
-  margin: 5px;
-  font-size: 18px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
+button{
+  padding:10px 15px;
+  margin:5px;
+  font-size:17px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
 }
 
-.coin {
-  position: fixed;
-  font-size: 30px;
-  animation: fall 1s forwards;
-  pointer-events: none;
+.coin{
+  position:fixed;
+  font-size:30px;
+  animation:fall 1s forwards;
+  pointer-events:none;
 }
 
-@keyframes fall {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(120px);
-  }
+@keyframes fall{
+  from{opacity:1; transform:translateY(0);}
+  to{opacity:0; transform:translateY(120px);}
+}
+
+.dizzy{
+  animation:dizzyMove 0.15s infinite;
+  filter:drop-shadow(0 0 10px #9b7cff);
+}
+
+@keyframes dizzyMove{
+  0%{transform:rotate(-6deg);}
+  50%{transform:rotate(6deg);}
+  100%{transform:rotate(-6deg);}
+}
+
+.dead{
+  filter:grayscale(100%);
+  opacity:0.55;
 }
 </style>
 </head>
@@ -76,116 +87,218 @@ button {
 
 <div class="panel">
   <h2>金幣：<span id="coins">0</span></h2>
+  <p>飢餓值 🍖：<span id="hunger">100</span></p>
+  <p>口渴值 💧：<span id="thirst">100</span></p>
+  <p>好感度 💗：<span id="love">50</span></p>
+  <p>玩具 🧸：<span id="toys">0</span></p>
+  <p>便便 💩：<span id="poop">0</span></p>
   <p id="message">哎呀，今天也來看我了嗎？</p>
 </div>
 
 <div id="game">
-  <img id="pet" src="pet.png?v=6">
+  <img id="pet" src="pet.png?v=10">
 </div>
 
 <div class="panel">
-  <h2>商店</h2>
-  <button onclick="buyItem('food')">🍖 食物 5金幣</button>
-  <button onclick="buyItem('water')">💧 水 5金幣</button>
-  <button onclick="buyItem('toy')">🧸 玩具 10金幣</button>
+  <h2>商店 / 互動</h2>
+  <button onclick="buyFood()">🍖 買食物 5金幣</button>
+  <button onclick="buyWater()">💧 買水 5金幣</button>
+  <button onclick="buyToy()">🧸 買玩具 10金幣</button>
+  <button onclick="playToy()">跟牠玩</button>
+  <button onclick="cleanPoop()">清理便便</button>
+  <button onclick="restartGame()">重新開始</button>
 </div>
 
 <script>
 let coins = Number(localStorage.getItem("coins")) || 0;
+let hunger = Number(localStorage.getItem("hunger")) || 100;
+let thirst = Number(localStorage.getItem("thirst")) || 100;
+let love = Number(localStorage.getItem("love")) || 50;
+let toys = Number(localStorage.getItem("toys")) || 0;
+let poop = Number(localStorage.getItem("poop")) || 0;
+let dead = localStorage.getItem("dead") === "true";
 
 const pet = document.getElementById("pet");
 const game = document.getElementById("game");
-const coinText = document.getElementById("coins");
 const message = document.getElementById("message");
-
-coinText.textContent = coins;
 
 const talks = [
   "哎呀，今天也來看我了嗎？真乖。",
   "別急，我在這裡，不會跑太遠的。",
   "嗯？想摸我？可以喔，只准一下。",
   "你這樣一直點，我可是會害羞的。",
-  "肚子有點空了呢，要不要請我吃點什麼？",
-  "水也不錯，保持優雅很重要。",
-  "玩具？呵呵，你是想討我開心嗎？",
-  "被你抓起來的感覺……還真新鮮。",
   "小心一點，我可不是普通的寵物喔。",
   "今天也辛苦了，過來休息一下吧。"
 ];
 
-function saveGame() {
-  localStorage.setItem("coins", coins);
+function updateUI(){
+  document.getElementById("coins").textContent = coins;
+  document.getElementById("hunger").textContent = hunger;
+  document.getElementById("thirst").textContent = thirst;
+  document.getElementById("love").textContent = love;
+  document.getElementById("toys").textContent = toys;
+  document.getElementById("poop").textContent = poop;
+
+  if(dead){
+    pet.classList.add("dead");
+    say("牠已經倒下了……按重新開始吧。");
+  }
 }
 
-function say(text) {
+function saveGame(){
+  localStorage.setItem("coins", coins);
+  localStorage.setItem("hunger", hunger);
+  localStorage.setItem("thirst", thirst);
+  localStorage.setItem("love", love);
+  localStorage.setItem("toys", toys);
+  localStorage.setItem("poop", poop);
+  localStorage.setItem("dead", dead);
+}
+
+function say(text){
   message.textContent = text;
 }
 
-function randomTalk() {
-  const text = talks[Math.floor(Math.random() * talks.length)];
-  say(text);
+function randomTalk(){
+  say(talks[Math.floor(Math.random() * talks.length)]);
 }
 
-function dropCoin(x, y) {
+function checkDead(){
+  if(hunger <= 0 || thirst <= 0){
+    dead = true;
+    hunger = Math.max(0, hunger);
+    thirst = Math.max(0, thirst);
+    pet.classList.add("dead");
+    say("飢餓或口渴歸零了……牠倒下了。");
+    saveGame();
+  }
+}
+
+function dropCoin(x,y){
   const coin = document.createElement("div");
   coin.className = "coin";
   coin.textContent = "🪙";
   coin.style.left = x + "px";
   coin.style.top = y + "px";
   document.body.appendChild(coin);
-
-  setTimeout(function() {
-    coin.remove();
-  }, 1000);
+  setTimeout(()=>coin.remove(),1000);
 }
 
-function keepInside() {
-  const maxX = game.clientWidth - pet.clientWidth;
-  const maxY = game.clientHeight - pet.clientHeight;
-
-  if (petX < 0) petX = 0;
-  if (petY < 0) petY = 0;
-  if (petX > maxX) petX = maxX;
-  if (petY > maxY) petY = maxY;
-}
-
-function setNewTarget() {
-  const maxX = game.clientWidth - pet.clientWidth;
-  const maxY = game.clientHeight - pet.clientHeight;
-
-  targetX = Math.random() * maxX;
-  targetY = Math.random() * maxY;
-}
-
-pet.addEventListener("click", function(event) {
+pet.addEventListener("click", function(event){
+  if(dead) return;
   coins++;
-  coinText.textContent = coins;
-  saveGame();
-
+  love++;
   randomTalk();
-  dropCoin(event.clientX, event.clientY);
+  dropCoin(event.clientX,event.clientY);
+  saveGame();
+  updateUI();
 });
 
-function buyItem(type) {
-  let price = 0;
+function buyFood(){
+  if(dead) return;
+  if(coins < 5){ say("金幣不夠喔。"); return; }
 
-  if (type === "food") price = 5;
-  if (type === "water") price = 5;
-  if (type === "toy") price = 10;
+  coins -= 5;
+  hunger += 25;
 
-  if (coins < price) {
-    say("金幣不夠喔，再陪我一下吧。");
-    return;
+  if(hunger > 100){
+    hunger = 100;
+    poop++;
+    say("吃太多了……嗯，拉了。💩");
+  }else{
+    say("🍖 呵呵，還挺會照顧人的嘛。");
   }
 
-  coins -= price;
-  coinText.textContent = coins;
   saveGame();
-
-  if (type === "food") say("🍖 呵呵，還挺會照顧人的嘛。");
-  if (type === "water") say("💧 謝謝，這樣就舒服多了。");
-  if (type === "toy") say("🧸 你是想討我開心嗎？成功了喔。");
+  updateUI();
 }
+
+function buyWater(){
+  if(dead) return;
+  if(coins < 5){ say("金幣不夠喔。"); return; }
+
+  coins -= 5;
+  thirst += 25;
+
+  if(thirst > 100){
+    thirst = 100;
+    poop++;
+    say("喝太多了……好像有點不妙。💩");
+  }else{
+    say("💧 謝謝，舒服多了。");
+  }
+
+  saveGame();
+  updateUI();
+}
+
+function buyToy(){
+  if(dead) return;
+  if(coins < 10){ say("金幣不夠喔。"); return; }
+
+  coins -= 10;
+  toys++;
+  say("🧸 買到新玩具了。");
+  saveGame();
+  updateUI();
+}
+
+function playToy(){
+  if(dead) return;
+  if(toys <= 0){ say("沒有玩具喔，先買一個吧。"); return; }
+
+  toys--;
+  love += 15;
+  hunger -= 5;
+  thirst -= 5;
+  say("🧸 你是想討我開心嗎？成功了喔。");
+
+  checkDead();
+  saveGame();
+  updateUI();
+}
+
+function cleanPoop(){
+  if(dead) return;
+  if(poop <= 0){ say("很乾淨，沒有便便。"); return; }
+
+  poop = 0;
+  love += 5;
+  say("清乾淨了，真貼心。");
+  saveGame();
+  updateUI();
+}
+
+function restartGame(){
+  coins = 0;
+  hunger = 100;
+  thirst = 100;
+  love = 50;
+  toys = 0;
+  poop = 0;
+  dead = false;
+  pet.classList.remove("dead");
+  pet.classList.remove("dizzy");
+  say("重新開始了。這次好好照顧我喔。");
+  saveGame();
+  updateUI();
+}
+
+setInterval(function(){
+  if(dead) return;
+
+  hunger -= 2;
+  thirst -= 3;
+  love -= 1;
+
+  if(poop > 0) love -= poop;
+
+  if(love < 0) love = 0;
+
+  checkDead();
+  saveGame();
+  updateUI();
+},5000);
 
 let petX = 300;
 let petY = 180;
@@ -196,8 +309,29 @@ let dragging = false;
 let offsetX = 0;
 let offsetY = 0;
 
-function movePet() {
-  if (!dragging) {
+let dizzy = 0;
+let lastMouseX = 0;
+
+function keepInside(){
+  const maxX = game.clientWidth - pet.clientWidth;
+  const maxY = game.clientHeight - pet.clientHeight;
+
+  if(petX < 0) petX = 0;
+  if(petY < 0) petY = 0;
+  if(petX > maxX) petX = maxX;
+  if(petY > maxY) petY = maxY;
+}
+
+function setNewTarget(){
+  const maxX = game.clientWidth - pet.clientWidth;
+  const maxY = game.clientHeight - pet.clientHeight;
+
+  targetX = Math.random() * maxX;
+  targetY = Math.random() * maxY;
+}
+
+function movePet(){
+  if(!dragging && !dead){
     petX += (targetX - petX) * 0.02;
     petY += (targetY - petY) * 0.02;
 
@@ -206,10 +340,7 @@ function movePet() {
     pet.style.left = petX + "px";
     pet.style.top = petY + "px";
 
-    if (
-      Math.abs(targetX - petX) < 5 &&
-      Math.abs(targetY - petY) < 5
-    ) {
+    if(Math.abs(targetX-petX)<5 && Math.abs(targetY-petY)<5){
       setNewTarget();
     }
   }
@@ -217,19 +348,33 @@ function movePet() {
   requestAnimationFrame(movePet);
 }
 
-pet.addEventListener("mousedown", function(event) {
+pet.addEventListener("mousedown", function(event){
+  if(dead) return;
+
   dragging = true;
   offsetX = event.clientX - pet.offsetLeft;
   offsetY = event.clientY - pet.offsetTop;
+  lastMouseX = event.clientX;
+  dizzy = 0;
+
   pet.style.cursor = "grabbing";
   say("被你抓起來了呢，真是大膽。");
 });
 
-document.addEventListener("mousemove", function(event) {
-  if (!dragging) return;
+document.addEventListener("mousemove", function(event){
+  if(!dragging || dead) return;
 
   petX = event.clientX - offsetX;
   petY = event.clientY - offsetY;
+
+  const speed = Math.abs(event.clientX - lastMouseX);
+  lastMouseX = event.clientX;
+  dizzy += speed * 0.1;
+
+  if(dizzy > 300){
+    pet.classList.add("dizzy");
+    say("嗚哇……有點暈……🌀");
+  }
 
   keepInside();
 
@@ -237,17 +382,36 @@ document.addEventListener("mousemove", function(event) {
   pet.style.top = petY + "px";
 });
 
-document.addEventListener("mouseup", function() {
-  if (!dragging) return;
+document.addEventListener("mouseup", function(){
+  if(!dragging) return;
 
   dragging = false;
   pet.style.cursor = "grab";
-  say("放下來了？還以為你會多抱一會兒。");
 
+  if(dizzy > 500){
+    love -= 10;
+    say("等、等等……我要暈了……🌀");
+  }else if(dizzy > 300){
+    love -= 5;
+    say("有點頭暈呢……");
+  }else{
+    say("放下來了？還以為你會多抱一會兒。");
+  }
+
+  if(love < 0) love = 0;
+
+  setTimeout(function(){
+    pet.classList.remove("dizzy");
+  },3000);
+
+  dizzy = 0;
   setNewTarget();
+  saveGame();
+  updateUI();
 });
 
 setNewTarget();
+updateUI();
 movePet();
 </script>
 
