@@ -2,89 +2,72 @@
 <html>
 <head>
 <meta charset="UTF-8">
-
 <title>寵物養成遊戲</title>
 
 <style>
-
-body{
-    background:#f5eedf;
-    font-family:"Microsoft JhengHei";
-    text-align:center;
-    margin:0;
+body {
+  background: #f5eedf;
+  font-family: "Microsoft JhengHei";
+  text-align: center;
+  margin: 0;
 }
 
-h1{
-    margin-top:20px;
+#game {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  overflow: hidden;
 }
 
-#game{
-    position:relative;
-    width:100%;
-    height:500px;
-    overflow:hidden;
+#pet {
+  position: absolute;
+  width: 220px;
+  left: 300px;
+  top: 180px;
+  cursor: grab;
+  user-select: none;
 }
 
-#pet{
-    position:absolute;
-    width:220px;
-    left:300px;
-    top:180px;
-    cursor:grab;
-    user-select:none;
+.panel {
+  background: white;
+  width: 500px;
+  margin: 15px auto;
+  padding: 15px;
+  border-radius: 15px;
 }
 
-#message{
-    font-size:24px;
-    margin:15px;
-    min-height:40px;
+#message {
+  font-size: 22px;
+  min-height: 35px;
 }
 
-.panel{
-    background:white;
-    width:500px;
-    margin:auto;
-    padding:15px;
-    border-radius:15px;
-    box-shadow:0 0 10px rgba(0,0,0,0.15);
+button {
+  padding: 10px 15px;
+  margin: 5px;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
-button{
-    padding:10px 15px;
-    margin:5px;
-    font-size:18px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
+.coin {
+  position: fixed;
+  font-size: 30px;
+  animation: fall 1s forwards;
+  pointer-events: none;
 }
 
-button:hover{
-    opacity:0.8;
+@keyframes fall {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(120px);
+  }
 }
-
-.coin{
-    position:fixed;
-    font-size:30px;
-    animation:fall 1s forwards;
-    pointer-events:none;
-}
-
-@keyframes fall{
-
-    from{
-        opacity:1;
-        transform:translateY(0);
-    }
-
-    to{
-        opacity:0;
-        transform:translateY(120px);
-    }
-
-}
-
 </style>
-
 </head>
 
 <body>
@@ -92,285 +75,180 @@ button:hover{
 <h1>我的寵物養成遊戲</h1>
 
 <div class="panel">
-
-<h2>金幣：<span id="coins">0</span></h2>
-
-<p id="message">點我一下試試看。</p>
-
+  <h2>金幣：<span id="coins">0</span></h2>
+  <p id="message">哎呀，今天也來看我了嗎？</p>
 </div>
 
-<br>
-
 <div id="game">
-
-<img
-id="pet"
-src="pet.png?v=5"
->
-
+  <img id="pet" src="pet.png?v=6">
 </div>
 
 <div class="panel">
-
-<h2>商店</h2>
-
-<button onclick="buyFood()">🍖 食物 (5)</button>
-
-<button onclick="buyWater()">💧 水 (5)</button>
-
-<button onclick="buyToy()">🧸 玩具 (10)</button>
-
+  <h2>商店</h2>
+  <button onclick="buyItem('food')">🍖 食物 5金幣</button>
+  <button onclick="buyItem('water')">💧 水 5金幣</button>
+  <button onclick="buyItem('toy')">🧸 玩具 10金幣</button>
 </div>
 
 <script>
+let coins = Number(localStorage.getItem("coins")) || 0;
 
-let coins =
-Number(localStorage.getItem("coins")) || 0;
+const pet = document.getElementById("pet");
+const game = document.getElementById("game");
+const coinText = document.getElementById("coins");
+const message = document.getElementById("message");
 
-document.getElementById("coins").textContent =
-coins;
-
-const pet =
-document.getElementById("pet");
-
-const message =
-document.getElementById("message");
+coinText.textContent = coins;
 
 const talks = [
-
-"喵～",
-
-"今天也要陪我玩嗎？",
-
-"我餓了。",
-
-"摸摸我。",
-
-"不要一直戳我啦。",
-
-"你來啦。",
-
-"我想睡覺。"
-
+  "哎呀，今天也來看我了嗎？真乖。",
+  "別急，我在這裡，不會跑太遠的。",
+  "嗯？想摸我？可以喔，只准一下。",
+  "你這樣一直點，我可是會害羞的。",
+  "肚子有點空了呢，要不要請我吃點什麼？",
+  "水也不錯，保持優雅很重要。",
+  "玩具？呵呵，你是想討我開心嗎？",
+  "被你抓起來的感覺……還真新鮮。",
+  "小心一點，我可不是普通的寵物喔。",
+  "今天也辛苦了，過來休息一下吧。"
 ];
 
-function saveGame(){
-
-localStorage.setItem("coins",coins);
-
+function saveGame() {
+  localStorage.setItem("coins", coins);
 }
 
-function say(text){
-
-message.textContent = text;
-
+function say(text) {
+  message.textContent = text;
 }
 
-function randomTalk(){
-
-let text =
-talks[Math.floor(Math.random()*talks.length)];
-
-say(text);
-
+function randomTalk() {
+  const text = talks[Math.floor(Math.random() * talks.length)];
+  say(text);
 }
 
-function dropCoin(x,y){
+function dropCoin(x, y) {
+  const coin = document.createElement("div");
+  coin.className = "coin";
+  coin.textContent = "🪙";
+  coin.style.left = x + "px";
+  coin.style.top = y + "px";
+  document.body.appendChild(coin);
 
-let coin =
-document.createElement("div");
-
-coin.className = "coin";
-
-coin.textContent = "🪙";
-
-coin.style.left = x + "px";
-
-coin.style.top = y + "px";
-
-document.body.appendChild(coin);
-
-setTimeout(function(){
-
-coin.remove();
-
-},1000);
-
+  setTimeout(function() {
+    coin.remove();
+  }, 1000);
 }
 
-pet.addEventListener("click",function(event){
+function keepInside() {
+  const maxX = game.clientWidth - pet.clientWidth;
+  const maxY = game.clientHeight - pet.clientHeight;
 
-coins++;
+  if (petX < 0) petX = 0;
+  if (petY < 0) petY = 0;
+  if (petX > maxX) petX = maxX;
+  if (petY > maxY) petY = maxY;
+}
 
-document.getElementById("coins").textContent =
-coins;
+function setNewTarget() {
+  const maxX = game.clientWidth - pet.clientWidth;
+  const maxY = game.clientHeight - pet.clientHeight;
 
-saveGame();
+  targetX = Math.random() * maxX;
+  targetY = Math.random() * maxY;
+}
 
-randomTalk();
+pet.addEventListener("click", function(event) {
+  coins++;
+  coinText.textContent = coins;
+  saveGame();
 
-dropCoin(
-event.clientX,
-event.clientY
-);
-
+  randomTalk();
+  dropCoin(event.clientX, event.clientY);
 });
 
-function buyFood(){
+function buyItem(type) {
+  let price = 0;
 
-if(coins < 5){
+  if (type === "food") price = 5;
+  if (type === "water") price = 5;
+  if (type === "toy") price = 10;
 
-say("金幣不夠。");
+  if (coins < price) {
+    say("金幣不夠喔，再陪我一下吧。");
+    return;
+  }
 
-return;
+  coins -= price;
+  coinText.textContent = coins;
+  saveGame();
 
-}
-
-coins -= 5;
-
-document.getElementById("coins").textContent =
-coins;
-
-saveGame();
-
-say("🍖 好吃！");
-
-}
-
-function buyWater(){
-
-if(coins < 5){
-
-say("金幣不夠。");
-
-return;
-
-}
-
-coins -= 5;
-
-document.getElementById("coins").textContent =
-coins;
-
-saveGame();
-
-say("💧 喝水真舒服。");
-
-}
-
-function buyToy(){
-
-if(coins < 10){
-
-say("金幣不夠。");
-
-return;
-
-}
-
-coins -= 10;
-
-document.getElementById("coins").textContent =
-coins;
-
-saveGame();
-
-say("🧸 我喜歡這個玩具！");
-
+  if (type === "food") say("🍖 呵呵，還挺會照顧人的嘛。");
+  if (type === "water") say("💧 謝謝，這樣就舒服多了。");
+  if (type === "toy") say("🧸 你是想討我開心嗎？成功了喔。");
 }
 
 let petX = 300;
 let petY = 180;
-
 let targetX = 300;
 let targetY = 180;
 
 let dragging = false;
-
 let offsetX = 0;
 let offsetY = 0;
 
-function movePet(){
+function movePet() {
+  if (!dragging) {
+    petX += (targetX - petX) * 0.02;
+    petY += (targetY - petY) * 0.02;
 
-if(!dragging){
+    keepInside();
 
-petX += (targetX-petX)*0.02;
+    pet.style.left = petX + "px";
+    pet.style.top = petY + "px";
 
-petY += (targetY-petY)*0.02;
+    if (
+      Math.abs(targetX - petX) < 5 &&
+      Math.abs(targetY - petY) < 5
+    ) {
+      setNewTarget();
+    }
+  }
 
-pet.style.left = petX+"px";
-
-pet.style.top = petY+"px";
-
-if(
-Math.abs(targetX-petX)<5 &&
-Math.abs(targetY-petY)<5
-){
-
-targetX =
-Math.random()*800;
-
-targetY =
-Math.random()*300+100;
-
+  requestAnimationFrame(movePet);
 }
 
-}
-
-requestAnimationFrame(movePet);
-
-}
-
-pet.addEventListener("mousedown",function(event){
-
-dragging = true;
-
-offsetX =
-event.clientX - pet.offsetLeft;
-
-offsetY =
-event.clientY - pet.offsetTop;
-
-say("你把我抓起來了！");
-
+pet.addEventListener("mousedown", function(event) {
+  dragging = true;
+  offsetX = event.clientX - pet.offsetLeft;
+  offsetY = event.clientY - pet.offsetTop;
+  pet.style.cursor = "grabbing";
+  say("被你抓起來了呢，真是大膽。");
 });
 
-document.addEventListener("mousemove",function(event){
+document.addEventListener("mousemove", function(event) {
+  if (!dragging) return;
 
-if(!dragging) return;
+  petX = event.clientX - offsetX;
+  petY = event.clientY - offsetY;
 
-petX =
-event.clientX - offsetX;
+  keepInside();
 
-petY =
-event.clientY - offsetY;
-
-pet.style.left =
-petX + "px";
-
-pet.style.top =
-petY + "px";
-
+  pet.style.left = petX + "px";
+  pet.style.top = petY + "px";
 });
 
-document.addEventListener("mouseup",function(){
+document.addEventListener("mouseup", function() {
+  if (!dragging) return;
 
-if(!dragging) return;
+  dragging = false;
+  pet.style.cursor = "grab";
+  say("放下來了？還以為你會多抱一會兒。");
 
-dragging = false;
-
-say("放下來了。");
-
-targetX =
-Math.random()*800;
-
-targetY =
-Math.random()*300+100;
-
+  setNewTarget();
 });
 
+setNewTarget();
 movePet();
-
 </script>
 
 </body>
