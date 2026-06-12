@@ -28,6 +28,18 @@ body{
   overflow:hidden;
 }
 
+#poopArea{
+  position:absolute;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+}
+
+.poop{
+  position:absolute;
+  font-size:40px;
+}
+
 #pet{
   position:absolute;
   width:220px;
@@ -96,7 +108,8 @@ button{
 </div>
 
 <div id="game">
-  <img id="pet" src="pet.png?v=10">
+  <div id="poopArea"></div>
+  <img id="pet" src="pet.png?v=12">
 </div>
 
 <div class="panel">
@@ -118,6 +131,8 @@ let toys = Number(localStorage.getItem("toys")) || 0;
 let poop = Number(localStorage.getItem("poop")) || 0;
 let dead = localStorage.getItem("dead") === "true";
 
+let secretFoodClick = 0;
+
 const pet = document.getElementById("pet");
 const game = document.getElementById("game");
 const message = document.getElementById("message");
@@ -131,18 +146,8 @@ const talks = [
   "今天也辛苦了，過來休息一下吧。"
 ];
 
-function updateUI(){
-  document.getElementById("coins").textContent = coins;
-  document.getElementById("hunger").textContent = hunger;
-  document.getElementById("thirst").textContent = thirst;
-  document.getElementById("love").textContent = love;
-  document.getElementById("toys").textContent = toys;
-  document.getElementById("poop").textContent = poop;
-
-  if(dead){
-    pet.classList.add("dead");
-    say("牠已經倒下了……按重新開始吧。");
-  }
+function say(text){
+  message.textContent = text;
 }
 
 function saveGame(){
@@ -155,8 +160,34 @@ function saveGame(){
   localStorage.setItem("dead", dead);
 }
 
-function say(text){
-  message.textContent = text;
+function updateUI(){
+  document.getElementById("coins").textContent = coins;
+  document.getElementById("hunger").textContent = hunger;
+  document.getElementById("thirst").textContent = thirst;
+  document.getElementById("love").textContent = love;
+  document.getElementById("toys").textContent = toys;
+  document.getElementById("poop").textContent = poop;
+  drawPoop();
+
+  if(dead){
+    pet.classList.add("dead");
+  }else{
+    pet.classList.remove("dead");
+  }
+}
+
+function drawPoop(){
+  const poopArea = document.getElementById("poopArea");
+  poopArea.innerHTML = "";
+
+  for(let i = 0; i < poop; i++){
+    const poopDiv = document.createElement("div");
+    poopDiv.className = "poop";
+    poopDiv.textContent = "💩";
+    poopDiv.style.left = (Math.random() * 80 + 10) + "%";
+    poopDiv.style.top = (Math.random() * 80 + 10) + "%";
+    poopArea.appendChild(poopDiv);
+  }
 }
 
 function randomTalk(){
@@ -168,9 +199,9 @@ function checkDead(){
     dead = true;
     hunger = Math.max(0, hunger);
     thirst = Math.max(0, thirst);
-    pet.classList.add("dead");
     say("飢餓或口渴歸零了……牠倒下了。");
     saveGame();
+    updateUI();
   }
 }
 
@@ -186,18 +217,36 @@ function dropCoin(x,y){
 
 pet.addEventListener("click", function(event){
   if(dead) return;
+
   coins++;
   love++;
   randomTalk();
   dropCoin(event.clientX,event.clientY);
+
   saveGame();
   updateUI();
 });
 
 function buyFood(){
   if(dead) return;
-  if(coins < 5){ say("金幣不夠喔。"); return; }
 
+  if(coins < 5){
+    secretFoodClick++;
+
+    if(secretFoodClick >= 5){
+      coins += 50;
+      secretFoodClick = 0;
+      say("藏密密觸發了。偷偷給你50金幣。");
+      saveGame();
+      updateUI();
+      return;
+    }
+
+    say("金幣不夠喔。");
+    return;
+  }
+
+  secretFoodClick = 0;
   coins -= 5;
   hunger += 25;
 
@@ -239,6 +288,7 @@ function buyToy(){
   coins -= 10;
   toys++;
   say("🧸 買到新玩具了。");
+
   saveGame();
   updateUI();
 }
@@ -265,6 +315,7 @@ function cleanPoop(){
   poop = 0;
   love += 5;
   say("清乾淨了，真貼心。");
+
   saveGame();
   updateUI();
 }
@@ -277,9 +328,13 @@ function restartGame(){
   toys = 0;
   poop = 0;
   dead = false;
+  secretFoodClick = 0;
+
   pet.classList.remove("dead");
   pet.classList.remove("dizzy");
+
   say("重新開始了。這次好好照顧我喔。");
+
   saveGame();
   updateUI();
 }
@@ -291,7 +346,13 @@ setInterval(function(){
   thirst -= 3;
   love -= 1;
 
-  if(poop > 0) love -= poop;
+  if(poop > 0){
+    love -= poop;
+  }
+
+  if(poop >= 3){
+    say("嗯……我覺得房間裡的味道有點微妙呢。");
+  }
 
   if(love < 0) love = 0;
 
@@ -406,6 +467,7 @@ document.addEventListener("mouseup", function(){
 
   dizzy = 0;
   setNewTarget();
+
   saveGame();
   updateUI();
 });
