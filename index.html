@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>寵物養成遊戲</title>
+<title>蘇枋隼飛養成小遊戲</title>
 
 <style>
 body{
@@ -138,7 +138,7 @@ const game = document.getElementById("game");
 const message = document.getElementById("message");
 
 const talks = [
-  "哎呀，今天也來看我了嗎？真乖。",
+  "哎呀，今天也來看我了嗎？。",
   "別急，我在這裡，不會跑太遠的。",
   "嗯？想摸我？可以喔，只准一下。",
   "你這樣一直點，我可是會害羞的。",
@@ -253,9 +253,9 @@ function buyFood(){
   if(hunger > 100){
     hunger = 100;
     poop++;
-    say("吃太多了……嗯，拉了。💩");
+    say("拉了。💩");
   }else{
-    say("🍖 呵呵，還挺會照顧人的嘛。");
+    say("🍖 謝謝，我收下了。");
   }
 
   saveGame();
@@ -301,7 +301,7 @@ function playToy(){
   love += 15;
   hunger -= 5;
   thirst -= 5;
-  say("🧸 你是想討我開心嗎？成功了喔。");
+  say("🧸 是個很漂亮的娃娃呢。");
 
   checkDead();
   saveGame();
@@ -419,7 +419,7 @@ pet.addEventListener("mousedown", function(event){
   dizzy = 0;
 
   pet.style.cursor = "grabbing";
-  say("被你抓起來了呢，真是大膽。");
+  say("這樣可不有趣。");
 });
 
 document.addEventListener("mousemove", function(event){
