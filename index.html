@@ -16,17 +16,46 @@
 
     <p>名字：小貓咪</p>
 
-    <p>飽食度：80</p>
+    <p>飽食度：
+        <span id="food">80</span>
+    </p>
 
-    <p>心情：80</p>
+    <p>心情：
+        <span id="mood">80</span>
+    </p>
 
-    <p>體力：80</p>
+    <p>體力：
+        <span id="energy">80</span>
+    </p>
 
-    <button>餵食</button>
+    <button onclick="feedPet()">餵食</button>
 
-    <button>玩耍</button>
+    <button onclick="playPet()">玩耍</button>
 
-    <button>睡覺</button>
+    <button onclick="sleepPet()">睡覺</button>
+
+    <script>
+
+        let food = 80;
+        let mood = 80;
+        let energy = 80;
+
+        function feedPet() {
+            food += 10;
+            document.getElementById("food").textContent = food;
+        }
+
+        function playPet() {
+            mood += 10;
+            document.getElementById("mood").textContent = mood;
+        }
+
+        function sleepPet() {
+            energy += 10;
+            document.getElementById("energy").textContent = energy;
+        }
+
+    </script>
 
 </body>
 
