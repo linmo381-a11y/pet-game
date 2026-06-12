@@ -1,62 +1,88 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <meta charset="UTF-8">
-    <title>我的第一個寵物遊戲</title>
+  <meta charset="UTF-8">
+  <title>寵物養成遊戲</title>
+
+  <style>
+    body {
+      text-align: center;
+      font-family: sans-serif;
+      background-color: #fff7e8;
+    }
+
+    #pet {
+      width: 260px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #message {
+      font-size: 20px;
+      margin: 15px;
+    }
+
+    .coin {
+      position: fixed;
+      font-size: 28px;
+      animation: fall 1.2s linear forwards;
+      pointer-events: none;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(120px);
+        opacity: 0;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-    <h1>歡迎來到寵物養成遊戲</h1>
+  <h1>我的寵物養成遊戲</h1>
 
-    <div style="font-size:150px;">
-        🐱
-    </div>
+  <p>金幣：<span id="coins">0</span></p>
 
-    <p>名字：小貓咪</p>
+  <div id="message">摸摸牠看看。</div>
 
-    <p>飽食度：
-        <span id="food">80</span>
-    </p>
+  <img id="pet" src="pet.png" onclick="tapPet(event)">
 
-    <p>心情：
-        <span id="mood">80</span>
-    </p>
+  <script>
+    let coins = 0;
 
-    <p>體力：
-        <span id="energy">80</span>
-    </p>
+    const messages = [
+      "喵！",
+      "再摸一下嘛。",
+      "今天也要陪我玩嗎？",
+      "我餓了。",
+      "你來啦。"
+    ];
 
-    <button onclick="feedPet()">餵食</button>
+    function tapPet(event) {
+      coins += 1;
+      document.getElementById("coins").textContent = coins;
 
-    <button onclick="playPet()">玩耍</button>
+      let randomText = messages[Math.floor(Math.random() * messages.length)];
+      document.getElementById("message").textContent = randomText;
 
-    <button onclick="sleepPet()">睡覺</button>
+      let coin = document.createElement("div");
+      coin.className = "coin";
+      coin.textContent = "🪙";
+      coin.style.left = event.clientX + "px";
+      coin.style.top = event.clientY + "px";
 
-    <script>
+      document.body.appendChild(coin);
 
-        let food = 80;
-        let mood = 80;
-        let energy = 80;
-
-        function feedPet() {
-            food += 10;
-            document.getElementById("food").textContent = food;
-        }
-
-        function playPet() {
-            mood += 10;
-            document.getElementById("mood").textContent = mood;
-        }
-
-        function sleepPet() {
-            energy += 10;
-            document.getElementById("energy").textContent = energy;
-        }
-
-    </script>
+      setTimeout(function() {
+        coin.remove();
+      }, 1200);
+    }
+  </script>
 
 </body>
-
 </html>
